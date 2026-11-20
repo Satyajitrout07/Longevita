@@ -46,7 +46,8 @@ export default function HealthMetricsView() {
 
   // Sparkline SVG generator
   const renderSparkline = (metric) => {
-    const historyItem = metric.history[timeRange] || metric.history['6M'];
+    const historyItem = metric.history[timeRange] || metric.history['6M'] || { labels: [], data: [] };
+    if (!historyItem.data.length) return null;
     const { labels, data } = historyItem;
 
     const width = 300;
@@ -120,14 +121,7 @@ export default function HealthMetricsView() {
     );
   };
 
-  const metricList = [
-    healthMetrics.weight,
-    healthMetrics.bmi,
-    healthMetrics.bodyFat,
-    healthMetrics.bloodPressure,
-    healthMetrics.restingHeartRate,
-    healthMetrics.sleepDuration,
-  ];
+  const metricList = Object.values(healthMetrics);
 
   return (
     <div className="p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-7">
@@ -180,7 +174,7 @@ export default function HealthMetricsView() {
 
       {/* 6 Cards 3x2 Grid matching reference image */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-        {metricList.map((metric) => (
+        {metricList.filter(Boolean).map((metric) => (
           <div
             key={metric.key}
             onClick={() => handleOpenModal(metric.key)}
