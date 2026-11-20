@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import {
   ShieldCheck,
   Calendar,
@@ -27,6 +28,7 @@ export default function DashboardOverview({
 }) {
   // Safely read health context
   const healthData = useHealthData() || {};
+  const { user } = useAuth();
 
   const {
     member = {},
@@ -162,7 +164,7 @@ export default function DashboardOverview({
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1C2A] dark:text-white tracking-[-0.02em] flex items-center gap-2">
             <span>
-              Welcome back, {(member?.name || 'Member').split(' ')[0]}
+              Welcome back, {(user?.fullName || user?.name || member?.name || 'Member').split(' ')[0]}
             </span>
             <span className="inline-block animate-wave">👋</span>
           </h1>

@@ -41,6 +41,7 @@ export default function DoctorPortal({
 
   const { 
     doctor, 
+    member, 
     assignedMembers, 
     appointments, 
     labReports,
@@ -314,9 +315,9 @@ export default function DoctorPortal({
               <div className="bg-white dark:bg-[#091724] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-xs flex flex-col h-[600px] overflow-hidden">
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <img src={assignedMembers[0].avatar} alt="Priya" className="w-10 h-10 rounded-full object-cover" />
+                    <img src={assignedMembers[0]?.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
                     <div>
-                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">Priya Sharma</h4>
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">{member.name}</h4>
                       <p className="text-xs text-emerald-600 font-medium">Active Member • Premium Plan</p>
                     </div>
                   </div>

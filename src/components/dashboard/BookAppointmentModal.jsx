@@ -4,23 +4,19 @@ import { useHealthData } from '../../context/HealthContext';
 
 export default function BookAppointmentModal({ isOpen, onClose }) {
   const { bookAppointment } = useHealthData();
-  const [doctor, setDoctor] = useState('Dr. Ananya Rao');
-  const [specialty, setSpecialty] = useState('Preventive Medicine & Longevity');
-  const [date, setDate] = useState('2024-11-20');
-  const [time, setTime] = useState('11:00 AM');
-  const [type, setType] = useState('Video Consultation');
+  const [doctor, setDoctor] = useState('');
+  const [specialty, setSpecialty] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [type, setType] = useState('');
   const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   if (!isOpen) return null;
 
-  const doctorsList = [
-    { name: 'Dr. Ananya Rao', spec: 'Preventive Medicine & Longevity' },
-    { name: 'Dr. Vikram Malhotra', spec: 'Cardiovascular Health Specialist' },
-    { name: 'Dr. Neha Patel', spec: 'Functional Nutrition & Metabolic Health' },
-  ];
+  const doctorsList = [];
+  const timeSlots = [];
 
-  const timeSlots = ['09:30 AM', '11:00 AM', '02:30 PM', '04:00 PM', '05:30 PM'];
 
   const handleDoctorChange = (docName) => {
     setDoctor(docName);
@@ -44,7 +40,7 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
       date: formattedDate,
       time,
       type,
-      notes: notes || 'Preventive check-in consultation.',
+      notes,
     });
 
     setSubmitted(true);
