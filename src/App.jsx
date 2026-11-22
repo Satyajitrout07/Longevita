@@ -2,21 +2,26 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import AuthPage from './components/AuthPage';
+import CompleteProfilePage from './components/CompleteProfilePage';
 import MemberDashboard from './components/dashboard/MemberDashboard';
 import DoctorPortal from './components/doctor/DoctorPortal';
 import AdminPortal from './components/admin/AdminPortal';
 import { HealthDataProvider } from './context/HealthContext';
 
+const getViewFromLocation = () => {
+  const hash = window.location.hash.toLowerCase();
+  const pathname = window.location.pathname.toLowerCase();
+  if (pathname === '/complete-profile' || hash === '#complete-profile' || hash === '#complete_profile') return 'complete-profile';
+  if (hash === '#admin' || hash === '#admin-dashboard') return 'admin';
+  if (hash === '#doctor' || hash === '#doctor-portal') return 'doctor';
+  if (hash === '#dashboard') return 'dashboard';
+  if (hash === '#login') return 'login';
+  if (hash === '#signup' || hash === '#get-started') return 'signup';
+  return 'landing';
+};
+
 export default function App() {
-  const [currentView, setCurrentView] = useState(() => {
-    const hash = window.location.hash.toLowerCase();
-    if (hash === '#admin' || hash === '#admin-dashboard') return 'admin';
-    if (hash === '#doctor' || hash === '#doctor-portal') return 'doctor';
-    if (hash === '#dashboard') return 'dashboard';
-    if (hash === '#login') return 'login';
-    if (hash === '#signup' || hash === '#get-started') return 'signup';
-    return 'landing';
-  });
+  const [currentView, setCurrentView] = useState(() => getViewFromLocation());
 
   // Dark mode state with localStorage persistence and system preference fallback
   const [isDark, setIsDark] = useState(() => {
@@ -41,23 +46,28 @@ export default function App() {
   };
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.toLowerCase();
-      if (hash === '#admin' || hash === '#admin-dashboard') setCurrentView('admin');
-      else if (hash === '#doctor' || hash === '#doctor-portal') setCurrentView('doctor');
-      else if (hash === '#dashboard') setCurrentView('dashboard');
-      else if (hash === '#login') setCurrentView('login');
-      else if (hash === '#signup' || hash === '#get-started') setCurrentView('signup');
-      else if (hash === '#home' || hash === '') setCurrentView('landing');
+    const handleLocationChange = () => {
+      setCurrentView(getViewFromLocation());
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    window.addEventListener('popstate', handleLocationChange);
+    return () => {
+      window.removeEventListener('hashchange', handleLocationChange);
+      window.removeEventListener('popstate', handleLocationChange);
+    };
   }, []);
 
   const navigate = (view) => {
     setCurrentView(view);
-    if (view === 'admin') {
+    if (view === 'complete-profile') {
+      try {
+        window.history.pushState(null, '', '/complete-profile');
+      } catch {
+        // ignore
+      }
+      window.location.hash = '#complete-profile';
+    } else if (view === 'admin') {
       window.location.hash = '#admin';
     } else if (view === 'doctor') {
       window.location.hash = '#doctor';
@@ -99,11 +109,24 @@ export default function App() {
           onSwitchToDoctor={() => navigate('doctor')}
           onSwitchToAdmin={() => navigate('admin')}
         />
+      ) : currentView === 'complete-profile' ? (
+        <CompleteProfilePage
+          onNavigate={navigate}
+          isDark={isDark}
+          toggleDarkMode={toggleDarkMode}
+        />
       ) : currentView === 'signup' || currentView === 'login' ? (
         <AuthPage 
           key={currentView} 
           initialMode={currentView} 
-          onNavigate={navigate} 
+          onNavigate={(targetView) => {
+            const isJustRegistered = sessionStorage.getItem('longevita_just_registered') === 'true';
+            if ((currentView === 'signup' && targetView === 'dashboard') || (isJustRegistered && targetView === 'dashboard')) {
+              navigate('complete-profile');
+            } else {
+              navigate(targetView);
+            }
+          }} 
           isDark={isDark}
           toggleDarkMode={toggleDarkMode}
         />
@@ -151,6 +174,13 @@ export default function App() {
                   className="font-bold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
                 >
                   Admin Dashboard (Overview)
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => navigate('complete-profile')} 
+                  className="font-medium text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                >
+                  Complete Profile
                 </button>
                 <button 
                   type="button"

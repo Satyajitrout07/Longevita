@@ -34,6 +34,11 @@ export function AuthProvider({ children }) {
 
   const register = async (payload) => {
     const userData = await authService.register(payload);
+    try {
+      sessionStorage.setItem("longevita_just_registered", "true");
+    } catch {
+      // ignore storage access issues
+    }
     setUser(userData);
     return userData;
   };
@@ -44,8 +49,20 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
+  const updateUser = (updatedFieldsOrUser) => {
+    setUser((prev) => {
+      if (!prev) return updatedFieldsOrUser;
+      return { ...prev, ...updatedFieldsOrUser };
+    });
+  };
+
   const logout = () => {
     authService.logout();
+    try {
+      sessionStorage.removeItem("longevita_just_registered");
+    } catch {
+      // ignore
+    }
     setUser(null);
   };
 
@@ -58,6 +75,7 @@ export function AuthProvider({ children }) {
         register,
         login,
         logout,
+        updateUser,
       }}
     >
       {children}

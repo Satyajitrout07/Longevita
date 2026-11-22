@@ -364,6 +364,82 @@ export function HealthDataProvider({ children }) {
     }));
   };
 
+  // Action: Update member profile
+  const updateMemberProfile = (profile) => {
+    setData((prev) => {
+      const name = profile.fullName || prev.member.name;
+      const initials = name
+        ? name
+            .split(' ')
+            .filter(Boolean)
+            .map((p) => p[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase()
+        : prev.member.initials;
+
+      const updatedMember = {
+        ...prev.member,
+        ...(profile.fullName && { name: profile.fullName }),
+        ...(profile.email && { email: profile.email }),
+        ...(profile.mobile && { mobile: profile.mobile }),
+        ...(profile.profileImage && { avatar: profile.profileImage }),
+        initials,
+      };
+
+      let updatedMetrics = { ...prev.healthMetrics };
+      let updatedMarkers = { ...prev.healthMarkers };
+
+      if (profile.weight !== undefined && profile.weight !== '') {
+        const weightNum = parseFloat(profile.weight);
+        if (!isNaN(weightNum)) {
+          if (updatedMetrics.weight) {
+            updatedMetrics.weight = {
+              ...updatedMetrics.weight,
+              value: String(weightNum),
+              displayValue: `${weightNum} kg`,
+            };
+          }
+          if (updatedMarkers.weight) {
+            updatedMarkers.weight = {
+              ...updatedMarkers.weight,
+              value: weightNum,
+            };
+          }
+        }
+      }
+
+      if (profile.heightCm !== undefined && profile.heightCm !== '') {
+        const heightNum = parseFloat(profile.heightCm);
+        const weightVal = parseFloat(profile.weight || (updatedMarkers.weight && updatedMarkers.weight.value) || 0);
+        if (!isNaN(heightNum) && heightNum > 0 && !isNaN(weightVal) && weightVal > 0) {
+          const heightM = heightNum / 100;
+          const bmiVal = parseFloat((weightVal / (heightM * heightM)).toFixed(1));
+          if (updatedMetrics.bmi) {
+            updatedMetrics.bmi = {
+              ...updatedMetrics.bmi,
+              value: String(bmiVal),
+              displayValue: String(bmiVal),
+            };
+          }
+          if (updatedMarkers.bmi) {
+            updatedMarkers.bmi = {
+              ...updatedMarkers.bmi,
+              value: bmiVal,
+            };
+          }
+        }
+      }
+
+      return {
+        ...prev,
+        member: updatedMember,
+        healthMetrics: updatedMetrics,
+        healthMarkers: updatedMarkers,
+      };
+    });
+  };
+
   const unreadMessagesCount = data.careTeamMessages.filter((m) => m.isUnread).length;
   const nextAppointment = data.appointments[0] || null;
   const pendingLabReportsCount = data.labReports.filter((r) => r.status === 'Pending Review').length;
@@ -377,6 +453,7 @@ export function HealthDataProvider({ children }) {
         pendingLabReportsCount,
         addManualReading,
         updateMarker,
+        updateMemberProfile,
         bookAppointment,
         cancelAppointment,
         addLabReport,
