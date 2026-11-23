@@ -7,10 +7,12 @@ import MemberDashboard from './components/dashboard/MemberDashboard';
 import DoctorPortal from './components/doctor/DoctorPortal';
 import AdminPortal from './components/admin/AdminPortal';
 import { HealthDataProvider } from './context/HealthContext';
+import { useAuth } from './context/AuthContext';
 
 const getViewFromLocation = () => {
   const hash = window.location.hash.toLowerCase();
   const pathname = window.location.pathname.toLowerCase();
+  if (pathname === '/profile') return 'profile';
   if (pathname === '/complete-profile' || hash === '#complete-profile' || hash === '#complete_profile') return 'complete-profile';
   if (hash === '#admin' || hash === '#admin-dashboard') return 'admin';
   if (hash === '#doctor' || hash === '#doctor-portal') return 'doctor';
@@ -22,6 +24,7 @@ const getViewFromLocation = () => {
 
 export default function App() {
   const [currentView, setCurrentView] = useState(() => getViewFromLocation());
+  const { user, loading: authLoading } = useAuth();
 
   // Dark mode state with localStorage persistence and system preference fallback
   const [isDark, setIsDark] = useState(() => {
@@ -60,6 +63,14 @@ export default function App() {
 
   const navigate = (view) => {
     setCurrentView(view);
+    if (view === 'profile') {
+      window.history.pushState(null, '', '/profile');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (window.location.pathname.toLowerCase() === '/profile') {
+      window.history.pushState(null, '', '/');
+    }
     if (view === 'complete-profile') {
       try {
         window.history.pushState(null, '', '/complete-profile');
@@ -85,7 +96,9 @@ export default function App() {
 
   return (
     <HealthDataProvider>
-      {currentView === 'admin' ? (
+      {currentView === 'profile' && authLoading ? (
+        <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] dark:bg-[#07131D] text-slate-500 dark:text-slate-400">Loading your account...</div>
+      ) : currentView === 'admin' ? (
         <AdminPortal
           isDark={isDark}
           toggleDarkMode={toggleDarkMode}
@@ -101,13 +114,18 @@ export default function App() {
           onSwitchToMember={() => navigate('dashboard')}
           onSwitchToAdmin={() => navigate('admin')}
         />
-      ) : currentView === 'dashboard' ? (
+      ) : (currentView === 'dashboard' || currentView === 'profile') && user ? (
         <MemberDashboard 
+          key={currentView}
+          initialTab={currentView === 'profile' ? 'profile' : 'dashboard'}
           isDark={isDark} 
           toggleDarkMode={toggleDarkMode} 
           onNavigateHome={() => navigate('landing')}
           onSwitchToDoctor={() => navigate('doctor')}
           onSwitchToAdmin={() => navigate('admin')}
+          onNavigateProfile={() => navigate('profile')}
+          onNavigateDashboard={() => navigate('dashboard')}
+          onNavigateLogin={() => navigate('login')}
         />
       ) : currentView === 'complete-profile' ? (
         <CompleteProfilePage
@@ -115,10 +133,10 @@ export default function App() {
           isDark={isDark}
           toggleDarkMode={toggleDarkMode}
         />
-      ) : currentView === 'signup' || currentView === 'login' ? (
+      ) : currentView === 'signup' || currentView === 'login' || (currentView === 'profile' && !user) ? (
         <AuthPage 
-          key={currentView} 
-          initialMode={currentView} 
+          key={currentView === 'profile' ? 'login' : currentView} 
+          initialMode={currentView === 'profile' ? 'login' : currentView} 
           onNavigate={(targetView) => {
             const isJustRegistered = sessionStorage.getItem('longevita_just_registered') === 'true';
             if ((currentView === 'signup' && targetView === 'dashboard') || (isJustRegistered && targetView === 'dashboard')) {

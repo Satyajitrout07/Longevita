@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Search, Bell, Menu, Sun, Moon, LogOut, ChevronDown, Check, Stethoscope, ShieldAlert } from 'lucide-react';
+import { Search, Bell, Menu, Sun, Moon, LogOut, ChevronDown, Check, Stethoscope, ShieldAlert, UserRound, Settings } from 'lucide-react';
 import { useHealthData } from '../../context/HealthContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TopHeader({ 
   onToggleMobileMenu, 
@@ -10,9 +11,17 @@ export default function TopHeader({
   toggleDarkMode, 
   onNavigateHome,
   onSwitchToDoctor,
-  onSwitchToAdmin 
+  onSwitchToAdmin,
+  onNavigateProfile,
+  onNavigateLogin,
 }) {
   const { member, unreadMessagesCount } = useHealthData();
+  const { user, logout } = useAuth();
+  const displayName = user?.fullName || user?.name || member?.name || '';
+  const displayEmail = user?.email || member?.email || '';
+  const displayRole = user?.role || member?.role || '';
+  const profileImage = user?.profileImage || user?.avatar || member?.avatar || '';
+  const userInitials = displayName.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
@@ -129,15 +138,15 @@ export default function TopHeader({
           >
             {/* Green Initial Avatar */}
             <div className="w-9 h-9 rounded-full bg-[#10B981] flex items-center justify-center text-white font-bold text-xs shadow-xs">
-              {member.initials}
+              {profileImage ? <img src={profileImage} alt="" className="w-full h-full rounded-full object-cover" /> : userInitials || <UserRound className="w-4 h-4" />}
             </div>
 
             <div className="hidden sm:flex flex-col items-start text-left">
               <span className="text-[13px] font-bold text-slate-900 dark:text-white leading-tight">
-                {member.name}
+                {displayName}
               </span>
               <span className="text-[11px] text-slate-400 dark:text-slate-500 leading-tight">
-                {member.role}
+                {displayRole}
               </span>
             </div>
 
@@ -148,11 +157,29 @@ export default function TopHeader({
           {profileDropdownOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-2 z-40 animate-fadeIn">
               <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-700 mb-1">
-                <p className="text-xs font-bold text-slate-900 dark:text-white">{member.name}</p>
-                <p className="text-[11px] text-slate-400 truncate">{member.email}</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">{displayName}</p>
+                <p className="text-[11px] text-slate-400 truncate">{displayEmail}</p>
               </div>
 
               <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() => { setProfileDropdownOpen(false); onNavigateProfile?.(); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-teal-700 dark:text-teal-300 rounded-xl hover:bg-teal-50 dark:hover:bg-teal-950/50"
+                >
+                  <UserRound className="w-3.5 h-3.5" />
+                  <span>My Profile</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setProfileDropdownOpen(false); onNavigateProfile?.(); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/60"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  <span>Account Settings</span>
+                </button>
+
                 {onSwitchToDoctor && (
                   <button
                     type="button"
@@ -186,11 +213,11 @@ export default function TopHeader({
 
                 <button
                   type="button"
-                  onClick={() => { setProfileDropdownOpen(false); onNavigateHome(); }}
+                  onClick={() => { setProfileDropdownOpen(false); logout(); onNavigateLogin?.(); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 mt-1"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>Sign out</span>
+                  <span>Logout</span>
                 </button>
               </div>
             </div>
