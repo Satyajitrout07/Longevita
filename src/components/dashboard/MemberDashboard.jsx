@@ -6,6 +6,7 @@ import HealthMetricsView from './HealthMetricsView';
 import LabReportsView from './LabReportsView';
 import BookAppointmentModal from './BookAppointmentModal';
 import LogMarkerModal from './LogMarkerModal';
+import MyProfileView from './MyProfileView';
 import { useHealthData } from '../../context/HealthContext';
 import { 
   Calendar, 
@@ -30,9 +31,13 @@ export default function MemberDashboard({
   toggleDarkMode, 
   onNavigateHome,
   onSwitchToDoctor,
-  onSwitchToAdmin 
+  onSwitchToAdmin,
+  initialTab = 'dashboard',
+  onNavigateProfile,
+  onNavigateDashboard,
+  onNavigateLogin,
 }) {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
@@ -88,6 +93,8 @@ export default function MemberDashboard({
           onNavigateHome={onNavigateHome}
           onSwitchToDoctor={onSwitchToDoctor}
           onSwitchToAdmin={onSwitchToAdmin}
+          onNavigateProfile={onNavigateProfile}
+          onNavigateLogin={onNavigateLogin}
         />
 
         {/* Content Body */}
@@ -100,6 +107,7 @@ export default function MemberDashboard({
               onSelectTab={setActiveTab}
             />
           )}
+          {activeTab === 'profile' && <MyProfileView onBack={onNavigateDashboard} />}
 
           {/* Health Metrics View (Matches reference image for Health Records / Insights) */}
           {(activeTab === 'records' || activeTab === 'insights') && (
